@@ -202,10 +202,7 @@ async def generate_targeted_study_material(
         - Prioritize clarity and weak spot coverage over breadth.
         - Do not expand on all content; only cover {weak_spots_text} as specified.
 
-        Remember: focus only on the weak spots, and compress explanations so the entire material fits within 2 PDF pages.
-        """
-
-    
+        Remember: focus only on the weak spots, and compress explanations so the entire material fits within 2 PDF pages."""    
     try:
         response = await model.generate_content_async(prompt)
         return response.text
