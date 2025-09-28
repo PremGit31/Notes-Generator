@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personalized Study Material Generator - For Tutors</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { font-family: 'Plus Jakarta Sans', sans-serif; }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .material-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .material-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(99, 102, 241, 0.1));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .material-card:hover::before {
+            opacity: 1;
+        }
+        
+        .material-card.selected {
+            border-color: #6366f1;
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.05), rgba(139, 92, 246, 0.05));
+        }
+        
+        .weak-spot-tag {
+            display: inline-block;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            margin: 4px;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .weak-spot-tag:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        
+        .weak-spot-tag .remove-btn {
+            margin-left: 8px;
+            cursor: pointer;
+            color: #ef4444;
+            font-weight: bold;
+        }
+        
+        .loader {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #6366f1;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .progress-step {
+            transition: all 0.3s ease;
+        }
+        
+        .progress-step.active {
+            color: #6366f1;
+            font-weight: 600;
+        }
+        
+        .progress-step.completed {
+            color: #10b981;
+        }
+        
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="min-h-screen gradient-bg">
+    <!-- Header -->
+    <header class="glass-effect shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    <h1 class="text-2xl font-bold text-gray-800">Study Material Generator</h1>
+                </div>
+                <span class="text-sm text-gray-600 font-medium">For Course Tutors</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-6 py-8 max-w-6xl">
+        <!-- Progress Indicator -->
+        <div class="glass-effect rounded-xl shadow-lg p-6 mb-8">
+            <div class="flex items-center justify-between">
+                <div class="progress-step active" id="step1">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">📁</span>
+                        <span>Upload Course</span>
+                    </div>
+                </div>
+                <div class="h-0.5 bg-gray-300 flex-1 mx-4"></div>
+                <div class="progress-step" id="step2">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">🎯</span>
+                        <span>Identify Weak Spots</span>
+                    </div>
+                </div>
+                <div class="h-0.5 bg-gray-300 flex-1 mx-4"></div>
+                <div class="progress-step" id="step3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">⚙️</span>
+                        <span>Customize Output</span>
+                    </div>
+                </div>
+                <div class="h-0.5 bg-gray-300 flex-1 mx-4"></div>
+                <div class="progress-step" id="step4">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-2xl">📄</span>
+                        <span>Generate PDF</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form id="material-form" class="space-y-8">
+            <!-- Step 1: File Upload -->
+            <div class="glass-effect rounded-xl shadow-lg p-8 animate-fade-in">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">1</span>
+                    Upload Course Presentation
+                </h2>
+                
+                <div id="drop-zone" class="border-3 border-dashed border-gray-300 rounded-xl p-12 text-center hover:border-indigo-400 transition-all duration-300 cursor-pointer bg-gray-50 hover:bg-indigo-50">
+                    <svg class="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                    </svg>
+                    <p class="text-lg font-semibold text-gray-700 mb-2">Drop your PowerPoint file here</p>
+                    <p class="text-sm text-gray-500 mb-4">or click to browse</p>
+                    <button type="button" id="select-file-btn" class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        Select File
+                    </button>
+                    <p class="text-xs text-gray-400 mt-4">Supports .pptx files up to 50MB</p>
+                </div>
+                <input type="file" id="file-input" accept=".pptx" class="hidden">
+                
+                <div id="file-info" class="hidden mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-3">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span id="file-name" class="font-medium text-gray-700"></span>
+                        </div>
+                        <button type="button" id="remove-file" class="text-red-500 hover:text-red-700">Remove</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Identify Weak Spots -->
+            <div class="glass-effect rounded-xl shadow-lg p-8 animate-fade-in">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">2</span>
+                    Identify Student's Weak Spots
+                </h2>
+                
+                <p class="text-gray-600 mb-4">Enter the topics or concepts where the student needs extra attention:</p>
+                
+                <div class="space-y-4">
+                    <div class="flex gap-2">
+                        <input 
+                            type="text" 
+                            id="weak-spot-input" 
+                            placeholder="e.g., Quadratic equations, Photosynthesis, Machine learning..."
+                            class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                        <button 
+                            type="button" 
+                            id="add-weak-spot-btn"
+                            class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                        >
+                            Add Topic
+                        </button>
+                    </div>
+                    
+                    <div id="weak-spots-container" class="flex flex-wrap gap-2">
+                        <!-- Weak spots tags will appear here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Customize Output -->
+            <div class="glass-effect rounded-xl shadow-lg p-8 animate-fade-in">
+                <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 rounded-full w-8 h-8 flex items-center justify-center mr-3 text-sm font-bold">3</span>
+                    Customize Study Material
+                </h2>
+                
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Material Type Selection -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">Material Type</label>
+                        <div class="space-y-2" id="material-types">
+                            <div class="material-card border-2 border-gray-200 rounded-lg p-4 hover:shadow-md" data-type="comprehensive">
+                                <div class="flex items-start">
+                                    <input type="radio" name="material_type" value="comprehensive" class="mt-1 mr-3" checked>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Comprehensive Notes</h4>
+                                        <p class="text-sm text-gray-600">Detailed explanations covering all aspects</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="material-card border-2 border-gray-200 rounded-lg p-4 hover:shadow-md" data-type="summarized">
+                                <div class="flex items-start">
+                                    <input type="radio" name="material_type" value="summarized" class="mt-1 mr-3">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Summarized Points</h4>
+                                        <p class="text-sm text-gray-600">Concise summary of essential concepts</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="material-card border-2 border-gray-200 rounded-lg p-4 hover:shadow-md" data-type="pointwise">
+                                <div class="flex items-start">
+                                    <input type="radio" name="material_type" value="pointwise" class="mt-1 mr-3">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Point-wise Structure</h4>
+                                        <p class="text-sm text-gray-600">Bullet points for easy memorization</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="material-card border-2 border-gray-200 rounded-lg p-4 hover:shadow-md" data-type="prerequisite">
+                                <div class="flex items-start">
+                                    <input type="radio" name="material_type" value="prerequisite" class="mt-1 mr-3">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Prerequisite-Focused</h4>
+                                        <p class="text-sm text-gray-600">Emphasizes foundational concepts</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="material-card border-2 border-gray-200 rounded-lg p-4 hover:shadow-md" data-type="exam_focused">
+                                <div class="flex items-start">
+                                    <input type="radio" name="material_type" value="exam_focused" class="mt-1 mr-3">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Exam Preparation</h4>
+                                        <p class="text-sm text-gray-600">Tailored for test preparation</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Difficulty Level & Additional Options -->
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Difficulty Level</label>
+                            <select id="difficulty-level" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                <option value="beginner">Beginner - Simple language, basic concepts</option>
+                                <option value="intermediate" selected>Intermediate - Balanced approach</option>
+                                <option value="advanced">Advanced - Complex concepts, theoretical depth</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-3">Additional Instructions (Optional)</label>
+                            <textarea 
+                                id="additional-instructions"
+                                rows="4"
+                                placeholder="Any specific requirements or focus areas for the study material..."
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+                            ></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <div class="flex justify-center">
+                <button 
+                    type="submit" 
+                    id="generate-btn"
+                    class="px-12 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-3"
+                >
+                    <span id="btn-text">Generate Personalized Study Material</span>
+                    <div id="loading-spinner" class="loader hidden"></div>
+                </button>
+            </div>
+        </form>
+
+        <!-- Status Messages -->
+        <div id="status-container" class="mt-8 hidden">
+            <div id="status-message" class="glass-effect rounded-lg p-4 text-center"></div>
+        </div>
+    </main>
+
+    <script>
+        // Elements
+        const dropZone = document.getElementById('drop-zone');
+        const fileInput = document.getElementById('file-input');
+        const selectFileBtn = document.getElementById('select-file-btn');
+        const fileInfo = document.getElementById('file-info');
+        const fileName = document.getElementById('file-name');
+        const removeFileBtn = document.getElementById('remove-file');
+        const weakSpotInput = document.getElementById('weak-spot-input');
+        const addWeakSpotBtn = document.getElementById('add-weak-spot-btn');
+        const weakSpotsContainer = document.getElementById('weak-spots-container');
+        const form = document.getElementById('material-form');
+        const generateBtn = document.getElementById('generate-btn');
+        const btnText = document.getElementById('btn-text');
+        const loadingSpinner = document.getElementById('loading-spinner');
+        const statusContainer = document.getElementById('status-container');
+        const statusMessage = document.getElementById('status-message');
+        
+        let selectedFile = null;
+        let weakSpots = [];
+
+        // File Upload Handlers
+        selectFileBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            fileInput.click();
+        });
+
+        dropZone.addEventListener('click', (e) => {
+            if (e.target === selectFileBtn) return;
+            fileInput.click();
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // Drag and Drop
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+            document.body.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.add('border-indigo-400', 'bg-indigo-50');
+            });
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, () => {
+                dropZone.classList.remove('border-indigo-400', 'bg-indigo-50');
+            });
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.endsWith('.pptx')) {
+                    selectedFile = file;
+                    fileName.textContent = file.name;
+                    fileInfo.classList.remove('hidden');
+                    dropZone.classList.add('bg-green-50');
+                    updateProgressStep(1, 'completed');
+                    updateProgressStep(2, 'active');
+                } else {
+                    showStatus('Please select a valid .pptx file', 'error');
+                }
+            }
+        }
+
+        removeFileBtn.addEventListener('click', () => {
+            selectedFile = null;
+            fileInput.value = '';
+            fileInfo.classList.add('hidden');
+            dropZone.classList.remove('bg-green-50');
+            updateProgressStep(1, 'active');
+            updateProgressStep(2, 'inactive');
+        });
+
+        // Weak Spots Management
+        addWeakSpotBtn.addEventListener('click', addWeakSpot);
+        weakSpotInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addWeakSpot();
+            }
+        });
+
+        function addWeakSpot() {
+            const value = weakSpotInput.value.trim();
+            if (value && !weakSpots.includes(value)) {
+                weakSpots.push(value);
+                renderWeakSpots();
+                weakSpotInput.value = '';
+                if (weakSpots.length === 1) {
+                    updateProgressStep(2, 'completed');
+                    updateProgressStep(3, 'active');
+                }
+            }
+        }
+
+        function removeWeakSpot(index) {
+            weakSpots.splice(index, 1);
+            renderWeakSpots();
+            if (weakSpots.length === 0) {
+                updateProgressStep(2, 'active');
+                updateProgressStep(3, 'inactive');
+            }
+        }
+
+        function renderWeakSpots() {
+            weakSpotsContainer.innerHTML = weakSpots.map((spot, index) => `
+                <div class="weak-spot-tag">
+                    ${spot}
+                    <span class="remove-btn" onclick="removeWeakSpot(${index})">×</span>
+                </div>
+            `).join('');
+        }
+
+        // Material Type Selection
+        document.querySelectorAll('.material-card').forEach(card => {
+            card.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+                document.querySelectorAll('.material-card').forEach(c => c.classList.remove('selected'));
+                this.classList.add('selected');
+                updateProgressStep(3, 'completed');
+            });
+        });
+
+        // Form Submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!selectedFile) {
+                showStatus('Please select a PowerPoint file', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('weak_spots', weakSpots.join(','));
+            formData.append('material_type', document.querySelector('input[name="material_type"]:checked').value);
+            formData.append('difficulty_level', document.getElementById('difficulty-level').value);
+            formData.append('additional_instructions', document.getElementById('additional-instructions').value);
+
+            setLoading(true);
+            updateProgressStep(4, 'active');
+            showStatus('Generating personalized study material...', 'info');
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/generate-study-material/', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    
+                    const disposition = response.headers.get('content-disposition');
+                    let filename = 'study_material.pdf';
+                    if (disposition && disposition.indexOf('attachment') !== -1) {
+                        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                        const matches = filenameRegex.exec(disposition);
+                        if (matches != null && matches[1]) {
+                            filename = matches[1].replace(/['"]/g, '');
+                        }
+                    }
+
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+                    window.URL.revokeObjectURL(url);
+                    
+                    showStatus('Study material generated successfully!', 'success');
+                    updateProgressStep(4, 'completed');
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Generation failed');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showStatus(`Error: ${error.message}`, 'error');
+                updateProgressStep(4, 'inactive');
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        function setLoading(isLoading) {
+            generateBtn.disabled = isLoading;
+            if (isLoading) {
+                btnText.textContent = 'Generating...';
+                loadingSpinner.classList.remove('hidden');
+            } else {
+                btnText.textContent = 'Generate Personalized Study Material';
+                loadingSpinner.classList.add('hidden');
+            }
+        }
+
+        function showStatus(message, type) {
+            statusContainer.classList.remove('hidden');
+            statusMessage.textContent = message;
+            statusMessage.className = `glass-effect rounded-lg p-4 text-center ${
+                type === 'error' ? 'text-red-600 bg-red-50' :
+                type === 'success' ? 'text-green-600 bg-green-50' :
+                'text-blue-600 bg-blue-50'
+            }`;
+        }
+
+        function updateProgressStep(step, status) {
+            const stepElement = document.getElementById(`step${step}`);
+            if (!stepElement) return;
+            
+            stepElement.classList.remove('active', 'completed');
+            if (status === 'active') stepElement.classList.add('active');
+            if (status === 'completed') stepElement.classList.add('completed');
+        }
+    </script>
+</body>
+</html>
